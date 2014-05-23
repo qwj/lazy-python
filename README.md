@@ -7,16 +7,17 @@ Overview
 -----------
 
 *Lazy Evaluation* is among useful features in Functional Programming. 
-This tool help make lazy evaluation in Python easy to use.  The expression
-is saved in directed graph and evaluate when necessary. The evaluation 
-leverage multicore (``multiprocessing`` library in Python) and graph cut
-algorithm to compute the results in parallel.
+This tool help make lazy evaluation in Python easier.  The expression
+is saved in directed graph and evaluated when necessary.  The process
+of evaluation leverage multicore (``multiprocessing`` library in Python) 
+and graph cut algorithm to compute the results in parallel.
 
 Examples
 -----------
 
 This example illustrate how to calculate *Fibnoacci* by Lazy Evalution and
-the cache mechanism of pure function call with the same parameters.
+the cache mechanism of pure function call with the same parameters. By adding
+parameter "*debug=True*", it is easy to show the evaluation process step by step.
 
     >>> from lazy import Lazy
     >>> def fib(n):
