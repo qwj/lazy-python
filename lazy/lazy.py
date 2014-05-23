@@ -3,6 +3,14 @@ from threading import Lock
 from operator import add, sub, mul, truediv, getitem
 import time, weakref
 
+def lazy(func):
+    new_name = '_lazy_'+func.__name__
+    globals()[new_name] = func
+    func.__name__ = new_name
+    func.__module__ = __name__
+    lazyfunc = Lazy(func)
+    return lazyfunc
+
 class Lazy(object):
 
     POOL = None
@@ -14,7 +22,7 @@ class Lazy(object):
     @classmethod
     def set_cores(cls, num):
         cls.CORES = num
-    def __init__(self, operator, remote=True, format='{0}({1})'):
+    def __init__(self, operator, remote=True, format='{0}({1})', debug=False):
         self.operator = operator
         self.remote = remote
         self.format = format
@@ -22,6 +30,7 @@ class Lazy(object):
         self.depth = -1
         self.args = None
         self.waitlock = None
+        self.debug = debug
     def call(self, *args):
         cache_key = (self.operator, args)
         if cache_key in Lazy.CACHES:
@@ -41,6 +50,8 @@ class Lazy(object):
                 if i.value is None:
                     self.argscount += 1
                     i.waitings.append(self)
+                if i.debug:
+                    self.debug = True
         if self.argscount == 0:
             if self.remote:
                 Lazy.JOBS.add(self)
@@ -56,7 +67,7 @@ class Lazy(object):
                 i.setdepth(l+(1 if i.remote else 0))
         self.depth = max(self.depth, l)
     def __call__(self, *args):
-        s = Lazy(self.operator, self.remote, self.format)
+        s = Lazy(self.operator, self.remote, self.format, self.debug)
         return s.call(*args)
     def __add__(self, a):
         return ADD(self, a)
@@ -84,11 +95,16 @@ class Lazy(object):
         return self.operator == other.operator and self.args == other.args
     def __hash__(self):
         return hash((self.operator, self.args))
+    def opname(self):
+        if self.operator.__name__.startswith('_lazy_'):
+            return self.operator.__name__[6:]
+        else:
+            return self.operator.__name__
     def __str__(self):
         if self.func:
-            return 'Lazy(%s)' % (self.operator.__name__,)
+            return 'Lazy(%s)' % (self.opname(),)
         elif self.value is None:
-            return self.format.format(self.operator.__name__, ', '.join(map(str, self.args)), *self.args)
+            return self.format.format(self.opname(), ', '.join(map(str, self.args)), *self.args)
         else:
             return str(self.value)
     def __repr__(self):
@@ -99,7 +115,8 @@ class Lazy(object):
             Lazy.JOBS.add(self)
     def finish(self, value):
         self.runtime = time.time() - self.startrun
-        #print(self, '==', value)
+        if self.debug:
+            print(self, '==', value)
         self.value = value
         for i in self.waitings[:]:
             i.argsfinish()

@@ -1,2 +1,2 @@
-from lazy import Lazy, INT
+from .lazy import lazy, Lazy, INT
 
