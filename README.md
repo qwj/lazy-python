@@ -1,7 +1,8 @@
 lazy-python
 ===========
 
-A Python Lazy Programming library.
+A Python lazy programming library with implicit parallel and other
+optimizations for Functional Programming.
 
 Overview
 -----------
@@ -11,6 +12,18 @@ This tool help make lazy evaluation in Python easier.  The expression
 is saved in directed graph and evaluated when necessary.  The process
 of evaluation leverage multicore (``multiprocessing`` library in Python) 
 and graph cut algorithm to compute the results in parallel.
+
+Usage
+-----------
+
+- *Lazy(func)*
+    Return a new lazy function that don't do eager call. Use .eval() to 
+    compute the whole expression in parallel.
+- *@lazy*
+    Useful decorator for function that want to be lazy in definition.
+- *Lazy.set_cores(num)*
+    Set the actual CPU cores in parallel computing. The default value is
+    *multiprocessing.cpu_count()*
 
 Examples
 -----------
