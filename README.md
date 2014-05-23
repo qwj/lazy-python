@@ -20,8 +20,9 @@ the cache mechanism of pure function call with the same parameters. By adding
 parameter "*debug=True*", it is easy to show the evaluation process step by step.
 
     >>> from lazy import Lazy
+    >>> lazy_int = Lazy(int, debug=True)
     >>> def fib(n):
-    ...     return Lazy(int, debug=True)(n) if n <= 1 else fib(n-1) + fib(n-2)
+    ...     return lazy_int(n) if n <= 1 else fib(n-1) + fib(n-2)
     ... 
     >>> a = fib(10)
     >>> a
@@ -84,7 +85,7 @@ example shows how the implicit parallel works by using decorator *lazy*.
         s.eval()
         print(s)
     
-    $ time python3 1.py
+    $ time python3 test_parallel.py
     ((f1()*f2())+(f3()*f4()))
     Enter f1
     Enter f2
@@ -98,5 +99,26 @@ example shows how the implicit parallel works by using decorator *lazy*.
     
     real    0m5.173s
     user    0m0.111s
-    sys 0m0.049s
+    sys     0m0.049s
+
+You can easily change the number of CPU cores in parallel computing by adding
+*Lazy.set_cores(num)*. You can completely disable parallel by *Lazy.set_cores(0)*.
+
+    $ time python3 test_parallel_with_zero_cores.py
+    ((f1()*f2())+(f3()*f4()))
+    Enter f2
+    Leave f2
+    Enter f1
+    Leave f1
+    Enter f3
+    Leave f3
+    Enter f4
+    Leave f4
+    14
+    
+    real    0m20.085s
+    user    0m0.055s
+    sys     0m0.016s
+
+
 

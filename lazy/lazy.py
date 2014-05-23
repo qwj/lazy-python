@@ -133,13 +133,16 @@ class Lazy(object):
         Lazy.JOBS.discard(self)
         if self.remote:
             Lazy.ACTIVE += 1
-            self.POOL.apply_async(self.operator, args, callback = self.finish)
+            if Lazy.POOL:
+                Lazy.POOL.apply_async(self.operator, args, callback = self.finish)
+            else:
+                self.finish(self.operator(*args))
         else:
             self.finish(self.operator(*args))
     def eval(self):
         if self.value is not None:
             return self.value
-        if Lazy.POOL is None:
+        if Lazy.POOL is None and Lazy.CORES > 0:
             Lazy.POOL = Pool(Lazy.CORES)
         self.remote = False
         self.setdepth(0)
@@ -152,7 +155,7 @@ class Lazy(object):
     def schedule(cls):
         while cls.JOBS:
             next = max(list(cls.JOBS), key=lambda x:x.depth)
-            if next.depth == -1 or next.remote and cls.ACTIVE >= cls.CORES:
+            if next.depth == -1 or next.remote and cls.CORES > 0 and cls.ACTIVE >= cls.CORES:
                 break
             next.startjob()
 
